@@ -4,11 +4,11 @@ public class FileDivider {
 		
 	public void divideFile(String fileName, String directory) {
 		try {
-			FileOutputStream file1 = new FileOutputStream(directory + "\\file1.txt");
-			FileOutputStream file2 = new FileOutputStream(directory + "\\file2.txt");
-			FileOutputStream file3 = new FileOutputStream(directory + "\\file3.txt");
-			FileOutputStream file4 = new FileOutputStream(directory + "\\file4.txt");
-			FileOutputStream file5 = new FileOutputStream(directory + "\\file5.txt");
+			FileOutputStream file1 = new FileOutputStream(directory + "\\1515.txt");
+			FileOutputStream file2 = new FileOutputStream(directory + "\\1616.txt");
+			FileOutputStream file3 = new FileOutputStream(directory + "\\1717.txt");
+			FileOutputStream file4 = new FileOutputStream(directory + "\\1818.txt");
+			FileOutputStream file5 = new FileOutputStream(directory + "\\1919.txt");
 			FileInputStream inputFile = new FileInputStream(fileName);
 			double fileSize = inputFile.getChannel().size();
 			
