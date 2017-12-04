@@ -4,25 +4,37 @@ import java.net.Socket;
 public class AcceleratorClient {
 	
 	public void createThreads() {
-		SocketThread socketThread1 = new SocketThread(1515);
-		SocketThread socketThread2 = new SocketThread(1616);
-		SocketThread socketThread3 = new SocketThread(1717);
-		SocketThread socketThread4 = new SocketThread(1818);
-		SocketThread socketThread5 = new SocketThread(1919);
+		SocketThread socketThread1 = new SocketThread(55556);
+		SocketThread socketThread2 = new SocketThread(55557);
+		SocketThread socketThread3 = new SocketThread(55558);
+		SocketThread socketThread4 = new SocketThread(55559);
+		SocketThread socketThread5 = new SocketThread(55560);
 	}
 	
 	public class SocketThread extends Thread {
 			
-			Socket socket = null;
+			private Socket socket = null;
+			private int portNum = 0;
 			
-			public SocketThread(int portNum) {
+			
+			public SocketThread(int tempPort) {
+				portNum = tempPort;
+				start();  // Goes to run()
+			}
+			
+			public void run() {
 				try {
 					socket = new Socket("localHost", portNum);
-					System.out.println(this.getName()+ " is Connected.");
+					System.out.println("Thread: " + portNum + " is Connected.");
 				}
 				catch (Exception e) {
 					System.out.println("Error creating ServerSocket in thread " + this.getName());
 				}
 			}
+	}
+	
+	public static void main(String[] args) {
+		AcceleratorClient acceleratorClient = new AcceleratorClient();
+		acceleratorClient.createThreads();
 	}
 }
