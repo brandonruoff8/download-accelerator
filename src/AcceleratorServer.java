@@ -1,11 +1,14 @@
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.io.*;
 
 public class AcceleratorServer {
 	
 	private FileDivider fileDivider = new FileDivider();
 	private OutputStream outputStream = null;
+    private InputStream inputStream = null;
+    private File file = null;
 	String fileName = null;
 	
 	public AcceleratorServer() {
@@ -33,7 +36,7 @@ public class AcceleratorServer {
 		
 		private ServerSocket serverSocket = null;
 	    private Socket socket = null;
-	    private File partition = null;
+	    private FileInputStream partition = null;
 	    private int portNum = 0;
 	    
 	    public serverSocketThread(int tempPort) {
@@ -50,9 +53,10 @@ public class AcceleratorServer {
 				socket = serverSocket.accept();
 				System.out.println("Connected to client in Thread: " + portNum);
 				outputStream = socket.getOutputStream();
-				partition = new File("D:\\Computer Science\\CS 260\\DownloadAccelerator\\" 
-									+ portNum
-									+ ".txt");
+				file = new File("D:\\Computer Science\\CS 260\\DownloadAccelerator\\" 
+						+ portNum
+						+ ".txt");
+				partition = new FileInputStream(file);
 			}
 			catch (Exception e) {
 				System.out.println("Error creating ServerSocket in Thread: " + portNum);
@@ -60,9 +64,104 @@ public class AcceleratorServer {
 	    }
 	    
 	    public void writeToClient() {
-	    	
+	    	char symbol;
+	    	try {
+		    	for(int i = 0; i < file.length(); i++) 
+		    	{
+		    		symbol = (char)partition.read();
+		    		outputStream.write(symbol);
+		    	}
+		    		
+    		}
+	    	catch (Exception e) {
+	    		System.out.println("Error occured while sending partition.");
+	    	}
+	    }
+	    
+	    public void createReadThread() 
+	    {
+	        Thread readThread = new Thread() 
+	        {
+	            public void run() 
+	            {
+	                while (socket.isConnected()) 
+	                {
+	                    try 
+	                    {
+	                        byte[] readBuffer = new byte[200];
+	                        int num = inputStream.read(readBuffer);
+
+	                        if (num > 0) {
+	                            byte[] arrayBytes = new byte[num];
+	                            System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
+	                            String recvedMessage = new String(arrayBytes, "UTF-8");
+	                            System.out.println("Received message :" + recvedMessage);
+	                        }/* else {
+	                            // notify();
+	                        }*/
+	                        ;
+	                        //System.arraycopy();
+	                    }
+	                    catch (SocketException se)
+	                    {
+	                        System.exit(0);
+	                    }
+	                    catch (IOException i) 
+	                    {
+	                        i.printStackTrace();
+	                    }
+	                }
+	            }
+	        };
+	        readThread.setPriority(Thread.MAX_PRIORITY);
+	        readThread.start();
+	    }
+	    
+	    public void createWriteThread() 
+	    {
+	        Thread writeThread = new Thread() 
+	        {
+	            public void run() 
+	            {
+	                while (socket.isConnected()) 
+	                {
+	                    try 
+	                    {
+	                        BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+	                        sleep(100);
+	                        String typedMessage = inputReader.readLine();
+	                        if (typedMessage != null && typedMessage.length() > 0) 
+	                        {
+	                            synchronized (socket) 
+	                            {
+	                                outputStream.write(typedMessage.getBytes("UTF-8"));
+	                            }
+	                        }/* else {
+	                            notify();
+	                        }*/
+	                        ;
+	                        //System.arraycopy();
+
+	                    } 
+	                    catch (IOException i) 
+	                    {
+	                        i.printStackTrace();
+	                        break;
+	                    } 
+	                    catch (InterruptedException ie) 
+	                    {
+	                        ie.printStackTrace();
+	                        break;
+	                    }
+	               }
+	            }
+	        };
+	        writeThread.setPriority(Thread.MAX_PRIORITY);
+	        writeThread.start();
 	    }
 	}
+	
+	
 	
 	public class FileDivider {
 		
