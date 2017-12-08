@@ -6,11 +6,9 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.io.*;
 
 public class AcceleratorClient {
-	
-    private InputStream inStream = null;
-    private OutputStream outStream = null;
 	
 	public void createThreads() {
 		SocketThread socketThread1 = new SocketThread(55556);
@@ -22,101 +20,51 @@ public class AcceleratorClient {
 	
 	public class SocketThread extends Thread {
 			
-			private Socket socket = null;
-			private int portNum = 0;
-			
-			
-			public SocketThread(int tempPort) {
-				portNum = tempPort;
-				start();  // Goes to run()
+	    private DataInputStream inputStream = null;
+//	    private OutputStream outputStream = null;
+	    
+		private Socket socket = null;
+		private int portNum;
+	    private FileOutputStream outputFile = null;
+		
+		public SocketThread(int tempPort) {
+			portNum = tempPort;
+			start();  // Goes to run()
+		}
+		
+		public void run() {
+			try {
+				socket = new Socket("localHost", portNum);
+				System.out.println("Thread: " + portNum + " is Connected.");
+				inputStream = new DataInputStream(socket.getInputStream());
+				outputFile = new FileOutputStream("D:\\Computer Science\\CS 260\\DownloadAccelerator\\output"
+													+ portNum + ".txt", true);
+				System.out.println("Output file created in Thread: " + portNum);
 			}
-			
-			public void run() {
+			catch (Exception e) {
+				System.out.println("Error creating OutputStream in Thread :" + portNum);
+			}
+
+			while(true) {
 				try {
-					socket = new Socket("localHost", portNum);
-					System.out.println("Thread: " + portNum + " is Connected.");
+				    byte[] byteArray = new byte[1000];
+					int numBytes = inputStream.read(byteArray, 0, 1000);
+					System.out.println("Success!");
+					byte[] buffer = new byte[numBytes];
+					System.out.println("Input read from inputStream in Thread: " + portNum);
+					outputFile.write(buffer);
+					System.out.println("Output written to outputFile in Thread: " + portNum);
+					if (numBytes < 1000) {
+						break;
+					}
 				}
 				catch (Exception e) {
-					System.out.println("Error creating ServerSocket in thread " + this.getName());
+					System.out.println("Error creating receiving data from server in Thread: " + portNum);
 				}
 			}
-			
-		    public void createReadThread() 
-		    {
-		        Thread readThread = new Thread() 
-		        {
-		            public void run() 
-		            {
-		                while (socket.isConnected()) 
-		                {
-		                    try 
-		                    {
-		                        byte[] readBuffer = new byte[200];
-		                        int num = inStream.read(readBuffer);
-
-		                        if (num > 0) {
-		                            byte[] arrayBytes = new byte[num];
-		                            System.arraycopy(readBuffer, 0, arrayBytes, 0, num);
-		                            String recvedMessage = new String(arrayBytes, "UTF-8");
-		                            System.out.println("Received message :" + recvedMessage);
-		                        }/* else {
-		                            // notify();
-		                        }*/
-		                        ;
-		                        //System.arraycopy();
-		                    }
-		                    catch (SocketException se)
-		                    {
-		                        System.exit(0);
-		                    }
-		                    catch (IOException i) 
-		                    {
-		                        i.printStackTrace();
-		                    }
-		                }
-		            }
-		        };
-		        readThread.setPriority(Thread.MAX_PRIORITY);
-		        readThread.start();
-		    }
-		    
-		    public void createWriteThread() 
-		    {
-		        Thread writeThread = new Thread() 
-		        {
-		            public void run() 
-		            {
-		                while (socket.isConnected()) 
-		                {
-		                	try 
-		                	{
-		                        BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-		                        sleep(100);
-		                        String typedMessage = inputReader.readLine();
-		                        if (typedMessage != null && typedMessage.length() > 0) 
-		                        {
-		                            synchronized (socket) 
-		                            {
-		                                outStream.write(typedMessage.getBytes("UTF-8"));
-		                                sleep(100);
-		                            }
-		                        }
-		                        //System.arraycopy();
-		                    } 
-		                	catch (IOException i) 
-		                	{
-		                        i.printStackTrace();
-		                    } 
-		                	catch (InterruptedException ie) 
-		                	{
-		                        ie.printStackTrace();
-		                    }
-		                }
-		            }
-		        };
-		        writeThread.setPriority(Thread.MAX_PRIORITY);
-		        writeThread.start();
-		    }
+		}
+		
+		
 	}
 	
 	public static void main(String[] args) {
