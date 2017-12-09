@@ -16,6 +16,66 @@ public class AcceleratorClient {
 		SocketThread socketThread3 = new SocketThread(55558);
 		SocketThread socketThread4 = new SocketThread(55559);
 		SocketThread socketThread5 = new SocketThread(55560);
+		try {
+			socketThread1.join();
+			socketThread2.join();
+			socketThread3.join();
+			socketThread4.join();
+			socketThread5.join();
+		}
+		catch (Exception e) {
+			System.out.println("Error making main join() to Threads.");
+		}
+
+	}
+	
+	public void merge(String finalFileName) {
+		String directory = "D:\\Computer Science\\CS 260\\DownloadAccelerator\\";
+		try {
+			FileOutputStream finalFile = new FileOutputStream(directory + finalFileName);
+			FileInputStream file1 = new FileInputStream(directory + "output55556.txt");
+			FileInputStream file2 = new FileInputStream(directory + "output55557.txt");
+			FileInputStream file3 = new FileInputStream(directory + "output55558.txt");
+			FileInputStream file4 = new FileInputStream(directory + "output55559.txt");
+			FileInputStream file5 = new FileInputStream(directory + "output55560.txt");
+			
+			System.out.println("Files successfully created for merging.");
+			
+			byte[] buffer = new byte[(int)file1.getChannel().size()];
+			file1.read(buffer);
+			finalFile.write(buffer);			
+			System.out.println("First file merged.");
+
+			buffer = new byte[(int)file2.getChannel().size()];
+			file2.read(buffer);
+			finalFile.write(buffer);
+			System.out.println("Second file merged.");
+			
+			buffer = new byte[(int)file3.getChannel().size()];
+			file3.read(buffer);
+			finalFile.write(buffer);
+			System.out.println("Third file merged.");
+			
+			buffer = new byte[(int)file4.getChannel().size()];
+			file4.read(buffer);
+			finalFile.write(buffer);
+			System.out.println("Fourth file merged.");
+			
+			buffer = new byte[(int)file5.getChannel().size()];
+			file5.read(buffer);
+			finalFile.write(buffer);
+			System.out.println("Fifth file merged.");
+			
+			file1.close();
+			file2.close();
+			file3.close();
+			file4.close();
+			file5.close();
+			finalFile.close();
+		}
+		catch (Exception e) {
+			System.out.println("Error merging the five files to one.");
+		}	
 	}
 	
 	public class SocketThread extends Thread {
@@ -40,35 +100,60 @@ public class AcceleratorClient {
 				outputFile = new FileOutputStream("D:\\Computer Science\\CS 260\\DownloadAccelerator\\output"
 													+ portNum + ".txt", true);
 				System.out.println("Output file created in Thread: " + portNum);
+
+				
 			}
 			catch (Exception e) {
 				System.out.println("Error creating OutputStream in Thread :" + portNum);
 			}
 
-			while(true) {
+			//while(true) {
 				try {
-				    byte[] byteArray = new byte[1000];
-					int numBytes = inputStream.read(byteArray, 0, 1000);
+					int fileSize = (int)inputStream.readLong();
+					System.out.println(fileSize);
+				    byte[] buffer = new byte[fileSize];
+					int numBytes = inputStream.read(buffer, 0, fileSize);
 					System.out.println("Success!");
-					byte[] buffer = new byte[numBytes];
 					System.out.println("Input read from inputStream in Thread: " + portNum);
 					outputFile.write(buffer);
 					System.out.println("Output written to outputFile in Thread: " + portNum);
 					if (numBytes < 1000) {
-						break;
+						//break;
 					}
 				}
 				catch (Exception e) {
-					System.out.println("Error creating receiving data from server in Thread: " + portNum);
+					System.out.println("Error receiving data from server in Thread: " + portNum);
 				}
-			}
+
+			//}
 		}
 		
-		
+//		public class Merger {
+//			String directory;
+//			String fileName;
+//			FileOutputStream outputFile;
+//			
+//			public Merger() {
+//				directory = "D:\\Computer Science\\CS 260\\DownloadAccelerator\\";
+//				fileName = "originalFile.txt";
+//				outputFile = new FileOutputStream(directory + fileName);
+//			}
+//			
+//			public Merger(String tempDirectory, String tempFileName) {
+//				directory = tempDirectory;
+//				fileName = tempFileName;
+//				outputFile = new FileOutputStream(directory + fileName);
+//			}
+//		}
 	}
 	
 	public static void main(String[] args) {
+		long start = System.currentTimeMillis();
 		AcceleratorClient acceleratorClient = new AcceleratorClient();
 		acceleratorClient.createThreads();
+		long end = System.currentTimeMillis();
+		System.out.println("MultiThread time spent - NO MERGE: " + (end-start) + " milliseconds.");
+		acceleratorClient.merge("originalFile.txt");
+		System.out.println("MultiThread time spent - WITH MERGE: " + (end-start) + " milliseconds.");
 	}
 }
