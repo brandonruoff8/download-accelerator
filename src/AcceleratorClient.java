@@ -154,6 +154,7 @@ public class AcceleratorClient {
 		long end = System.currentTimeMillis();
 		System.out.println("MultiThread time spent - NO MERGE: " + (end-start) + " milliseconds.");
 		acceleratorClient.merge("originalFile.txt");
+		end = System.currentTimeMillis();
 		System.out.println("MultiThread time spent - WITH MERGE: " + (end-start) + " milliseconds.");
 	}
 }

@@ -10,6 +10,7 @@ public class AcceleratorServer {
 //  private InputStream inputStream = null;
     private File file = null;
 	String fileName = null;
+    public boolean doneDividing = false;
 	
 	public AcceleratorServer() {
 		fileName = "input.txt";
@@ -51,6 +52,7 @@ public class AcceleratorServer {
 				System.out.println("ServerSocket objects created in Thread: " + portNum 
 									+ ". Waiting for client to connect...");
 				socket = serverSocket.accept();
+				
 				System.out.println("Connected to client in Thread: " + portNum);
 				outputStream = new DataOutputStream(socket.getOutputStream());
 				file = new File("D:\\Computer Science\\CS 260\\DownloadAccelerator\\output" 
@@ -121,12 +123,16 @@ public class AcceleratorServer {
 	}
 	
 	public static void main(String[] args) {
-		AcceleratorServer acceleratorServer = new AcceleratorServer("input.txt");
+		AcceleratorServer acceleratorServer = new AcceleratorServer("100mFile.txt");
 		acceleratorServer.createThreads();
 		System.out.println("Threads created.");
 		System.out.println("Dividing input file...");
 		acceleratorServer.divideFile();
 		System.out.println("File division completed.");
-
+		acceleratorServer.doneDividing = true;
+		synchronized (acceleratorServer) {
+			acceleratorServer.notifyAll();
+		}
+		System.out.println("Notifying threads to continue...");
 	}
 }
