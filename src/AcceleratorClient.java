@@ -30,7 +30,7 @@ public class AcceleratorClient {
 	}
 	
 	public void merge(String finalFileName) {
-		String directory = "D:\\Computer Science\\CS 260\\DownloadAccelerator\\";
+		String directory = "C:\\Users\\brand\\Documents\\Computer Science\\CS 260\\DownloadAccelerator\\";
 		try {
 			FileOutputStream finalFile = new FileOutputStream(directory + finalFileName);
 			FileInputStream file1 = new FileInputStream(directory + "output55556.txt");
@@ -81,7 +81,6 @@ public class AcceleratorClient {
 	public class SocketThread extends Thread {
 			
 	    private DataInputStream inputStream = null;
-//	    private OutputStream outputStream = null;
 	    
 		private Socket socket = null;
 		private int portNum;
@@ -97,54 +96,39 @@ public class AcceleratorClient {
 				socket = new Socket("localHost", portNum);
 				System.out.println("Thread: " + portNum + " is Connected.");
 				inputStream = new DataInputStream(socket.getInputStream());
-				outputFile = new FileOutputStream("D:\\Computer Science\\CS 260\\DownloadAccelerator\\output"
-													+ portNum + ".txt", true);
-				System.out.println("Output file created in Thread: " + portNum);
-
-				
+				outputFile = new FileOutputStream("C:\\Users\\brand\\Documents\\Computer Science\\CS 260\\DownloadAccelerator\\"
+													+ "output" + portNum + ".txt");
+				System.out.println("Output file created in Thread: " + portNum);				
 			}
 			catch (Exception e) {
 				System.out.println("Error creating OutputStream in Thread :" + portNum);
 			}
-
 			//while(true) {
 				try {
 					int fileSize = (int)inputStream.readLong();
 					System.out.println(fileSize);
-				    byte[] buffer = new byte[fileSize];
-					int numBytes = inputStream.read(buffer, 0, fileSize);
-					System.out.println("Success!");
+				    byte[] buffer = new byte[10000];	
+				    int numBytes = inputStream.read(buffer);
 					System.out.println("Input read from inputStream in Thread: " + portNum);
 					outputFile.write(buffer);
 					System.out.println("Output written to outputFile in Thread: " + portNum);
-					if (numBytes < 1000) {
+					if (numBytes < 10000) {
 						//break;
 					}
 				}
 				catch (Exception e) {
 					System.out.println("Error receiving data from server in Thread: " + portNum);
 				}
-
 			//}
+			try {
+	    		socket.close();
+	    		outputFile.close();
+	    		inputStream.close();
+			}
+			catch(Exception e) {
+				System.out.println("Error closing socket, outputFile, and inputStream.");
+			}
 		}
-		
-//		public class Merger {
-//			String directory;
-//			String fileName;
-//			FileOutputStream outputFile;
-//			
-//			public Merger() {
-//				directory = "D:\\Computer Science\\CS 260\\DownloadAccelerator\\";
-//				fileName = "originalFile.txt";
-//				outputFile = new FileOutputStream(directory + fileName);
-//			}
-//			
-//			public Merger(String tempDirectory, String tempFileName) {
-//				directory = tempDirectory;
-//				fileName = tempFileName;
-//				outputFile = new FileOutputStream(directory + fileName);
-//			}
-//		}
 	}
 	
 	public static void main(String[] args) {
