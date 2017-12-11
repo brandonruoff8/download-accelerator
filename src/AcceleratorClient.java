@@ -39,8 +39,6 @@ public class AcceleratorClient {
 			FileInputStream file4 = new FileInputStream(directory + "output55559.txt");
 			FileInputStream file5 = new FileInputStream(directory + "output55560.txt");
 			
-			System.out.println("Files successfully created for merging.");
-			
 			byte[] buffer = new byte[(int)file1.getChannel().size()];
 			file1.read(buffer);
 			finalFile.write(buffer);			
@@ -81,6 +79,7 @@ public class AcceleratorClient {
 	public class SocketThread extends Thread {
 			
 	    private DataInputStream inputStream = null;
+	    private DataOutputStream outputStream = null;
 	    
 		private Socket socket = null;
 		private int portNum;
@@ -96,29 +95,46 @@ public class AcceleratorClient {
 				socket = new Socket("localHost", portNum);
 				System.out.println("Thread: " + portNum + " is Connected.");
 				inputStream = new DataInputStream(socket.getInputStream());
+				outputStream = new DataOutputStream(socket.getOutputStream());
 				outputFile = new FileOutputStream("C:\\Users\\brand\\Documents\\Computer Science\\CS 260\\DownloadAccelerator\\"
 													+ "output" + portNum + ".txt");
-				System.out.println("Output file created in Thread: " + portNum);				
+				//create long variables to count the bytes read
 			}
 			catch (Exception e) {
 				System.out.println("Error creating OutputStream in Thread :" + portNum);
 			}
-			//while(true) {
-				try {
-					int fileSize = (int)inputStream.readLong();
-					System.out.println(fileSize);
-				    byte[] buffer = new byte[10000];	
-				    int numBytes = inputStream.read(buffer);
-					System.out.println("Input read from inputStream in Thread: " + portNum);
-					outputFile.write(buffer);
-					System.out.println("Output written to outputFile in Thread: " + portNum);
-					if (numBytes < 10000) {
-						//break;
+			
+			try {
+				long totalBytesRead = 0;
+				long fileSize = inputStream.readLong();
+				int numBytes;
+				while(true) {
+					byte[] buffer = new byte[1000];
+				    //fill buffer with 10000 bytes from inputstream
+					if(totalBytesRead + 1000 < fileSize) {
+					    numBytes = inputStream.read(buffer, 0 , 1000);
+					}
+					else {
+						numBytes = inputStream.read(buffer, 0, (int)(fileSize - totalBytesRead));
+					}
+				    //write the bytes in buffer to the output file
+					outputFile.write(buffer, 0, numBytes);
+					outputFile.flush();
+					
+					totalBytesRead = totalBytesRead + numBytes;
+					//System.out.println("Thread " + portNum + " wrote " + numBytes + " bytes. Total bytes read:" + totalBytesRead);
+					
+
+					//if totalBytes is equal to the fileSize, then there is no more to be read
+					if (totalBytesRead == fileSize) {
+						break;
 					}
 				}
-				catch (Exception e) {
-					System.out.println("Error receiving data from server in Thread: " + portNum);
-				}
+			}
+			catch (Exception e) {
+				System.out.println("Error receiving data from server in Thread: " + portNum);
+				e.printStackTrace();
+			}
 			//}
 			try {
 	    		socket.close();
@@ -134,6 +150,7 @@ public class AcceleratorClient {
 	public static void main(String[] args) {
 		long start = System.currentTimeMillis();
 		AcceleratorClient acceleratorClient = new AcceleratorClient();
+		System.out.println("Reading from server...");
 		acceleratorClient.createThreads();
 		long end = System.currentTimeMillis();
 		System.out.println("MultiThread time spent - NO MERGE: " + (end-start) + " milliseconds.");

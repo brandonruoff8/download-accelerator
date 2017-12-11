@@ -5,8 +5,6 @@ import java.io.*;
 
 public class AcceleratorServer {
 	
-	private DataOutputStream outputStream = null;
-//  private InputStream inputStream = null;
     private File file = null;
 	String fileName = null;
 	String directory = null;
@@ -57,20 +55,117 @@ public class AcceleratorServer {
 	
 	public void divideFile() {
 		try {
-			FileOutputStream file1 = new FileOutputStream(directory + "inputPort1.txt");
-			FileOutputStream file2 = new FileOutputStream(directory + "inputPort2.txt"); 
-			FileOutputStream file3 = new FileOutputStream(directory + "inputPort3.txt");
-			FileOutputStream file4 = new FileOutputStream(directory + "inputPort4.txt");
-			FileOutputStream file5 = new FileOutputStream(directory + "inputPort5.txt");
+			FileOutputStream file1 = new FileOutputStream(directory + "input55556.txt");
+			FileOutputStream file2 = new FileOutputStream(directory + "input55557.txt"); 
+			FileOutputStream file3 = new FileOutputStream(directory + "input55558.txt");
+			FileOutputStream file4 = new FileOutputStream(directory + "input55559.txt");
+			FileOutputStream file5 = new FileOutputStream(directory + "input55560.txt");
 			FileInputStream inputFile = new FileInputStream(directory + fileName);
 //			int fileSize = (int)inputFile.getChannel().size();
-			byte[] buffer = new byte[10000];
+			byte[] buffer = new byte[1000];
+			long partitionSize = (inputFile.getChannel().size())/5;
 			
-			divideWrite(inputFile, file1, buffer);
-			divideWrite(inputFile, file2, buffer);
-			divideWrite(inputFile, file3, buffer);
-			divideWrite(inputFile, file4, buffer);
-			divideWrite(inputFile, file5, buffer);
+			System.out.println("Input file size: " + inputFile.getChannel().size() + ", Partition size : " + partitionSize);
+			
+			//write to first partition
+			try {
+				long remainingBytes = partitionSize;
+				while (true) {	
+					if (remainingBytes > 1000) {
+						int numBytes = inputFile.read(buffer, 0, 1000);
+						file1.write(buffer, 0, numBytes);
+						remainingBytes = remainingBytes - numBytes;
+					}
+					else {
+						int numBytes = inputFile.read(buffer, 0, (int)remainingBytes);
+						file1.write(buffer, 0, numBytes);
+						break;
+					}
+				}
+			}
+			catch (Exception e) {
+				System.out.println("Error occurred in divideWrite function.");
+			}
+			
+			//write to second partition
+			try {
+				long remainingBytes = partitionSize;
+				while (true) {	
+					if (remainingBytes > 1000) {
+						inputFile.read(buffer, 0, 1000);
+						file2.write(buffer);
+						remainingBytes = remainingBytes - 1000;
+					}
+					else {
+						inputFile.read(buffer, 0, (int)remainingBytes);
+						file2.write(buffer);
+						break;
+					}
+				}
+			}
+			catch (Exception e) {
+				System.out.println("Error occurred in divideWrite function.");
+			}
+			
+			//write to third partition
+			try {
+				long remainingBytes = partitionSize;
+				while (true) {	
+					if (remainingBytes > 1000) {
+						inputFile.read(buffer, 0, 1000);
+						file3.write(buffer);
+						remainingBytes = remainingBytes - 1000;
+					}
+					else {
+						inputFile.read(buffer, 0, (int)remainingBytes);
+						file3.write(buffer);
+						break;
+					}
+				}
+			}
+			catch (Exception e) {
+				System.out.println("Error occurred in divideWrite function.");
+			}
+			
+			//write to fourth partition
+			try {
+				long remainingBytes = partitionSize;
+				while (true) {	
+					if (remainingBytes > 1000) {
+						inputFile.read(buffer, 0, 1000);
+						file4.write(buffer);
+						remainingBytes = remainingBytes - 1000;
+					}
+					else {
+						inputFile.read(buffer, 0, (int)remainingBytes);
+						file4.write(buffer);
+						break;
+					}
+				}
+			}
+			catch (Exception e) {
+				System.out.println("Error occurred in divideWrite function.");
+			}
+			
+			//write to fifth partition
+			try {
+				long remainingBytes = inputFile.getChannel().size() - 4*partitionSize;
+				while (true) {	
+					if (remainingBytes > 1000) {
+						inputFile.read(buffer, 0, 1000);
+						file5.write(buffer);
+						remainingBytes = remainingBytes - 1000;
+					}
+					else {
+						inputFile.read(buffer, 0, (int)remainingBytes);
+						file5.write(buffer);
+						break;
+					}
+				}
+			}
+			catch (Exception e) {
+				System.out.println("Error occurred in divideWrite function.");
+			}
 			
 			file1.close();
 			file2.close();
@@ -85,31 +180,10 @@ public class AcceleratorServer {
 		}
 	}
 	
-	private void divideWrite(FileInputStream inputFile, FileOutputStream file, byte[] buffer) {
-		try {
-			long fileSize = (inputFile.getChannel().size())/5;
-			long remainingBytes = fileSize;
-			while (true) {	
-				if (remainingBytes > 10000) {
-					inputFile.read(buffer);
-					file.write(buffer);
-					remainingBytes = remainingBytes - 10000;
-				}
-				else {
-					inputFile.read(buffer, 0, (int)remainingBytes);
-					file.write(buffer);
-					break;
-				}
-
-			}
-		}
-		catch (Exception e) {
-			System.out.println("Error occurred in divideWrite function.");
-		}
-	}
-	
 	public class ServerSocketThread extends Thread {
 		
+		private DataOutputStream outputStream = null;
+		private DataInputStream inputStream = null;
 		private ServerSocket serverSocket = null;
 	    private Socket socket = null;
 	    private FileInputStream partition = null;
@@ -122,14 +196,15 @@ public class AcceleratorServer {
 	    public void run() {
 			try {
 				serverSocket = new ServerSocket(portNum);
-				portNum = serverSocket.getLocalPort();
+				//portNum = serverSocket.getLocalPort();
 				System.out.println("ServerSocket objects created in Thread: " + portNum 
 									+ ". Waiting for client to connect...");
 				socket = serverSocket.accept();
 				System.out.println("Connected to client in Thread: " + portNum);
 				
 				outputStream = new DataOutputStream(socket.getOutputStream());
-				file = new File("C:\\Users\\brand\\Documents\\Computer Science\\CS 260\\DownloadAccelerator\\output" 
+				inputStream = new DataInputStream(socket.getInputStream());
+				file = new File("C:\\Users\\brand\\Documents\\Computer Science\\CS 260\\DownloadAccelerator\\input" 
 						+ portNum
 						+ ".txt");
 				partition = new FileInputStream(file);
@@ -143,29 +218,35 @@ public class AcceleratorServer {
 	    
 	    public void writeToClient() {
 	    	try {
+	    		outputStream.writeLong(partition.getChannel().size());
 				System.out.println("Now sending partition to client in Thread: " + portNum);
-		    	byte[] buffer = new byte[10000];
+		    	byte[] buffer = new byte[1000];
 		    	while(true) {
-			    	int numBytes = partition.read(buffer);
-			    	outputStream.write(buffer);
+			    	int numBytes = partition.read(buffer, 0, 1000);
+			    	if(numBytes == -1) {
+			    		break;
+			    	}
+			    	outputStream.write(buffer, 0, 1000);
+			    	//System.out.println("Thread " + portNum + " sent " + numBytes + " bytes.");
 			    	outputStream.flush();
-			    	if(numBytes < 10000) {
+			    	if(numBytes < 1000) {
 			    		break;
 			    	}
 		    	}
+		    	socket.close();
 	    	}
 	    	catch(Exception e) {
 	    		System.out.println("Error occured while sending partition from " + this.getName());
+	    		e.printStackTrace();
 	    	}
 	    }
 	}
 	
 	public static void main(String[] args) {
 		AcceleratorServer acceleratorServer = new AcceleratorServer(
-				"1gFile.txt", 
+				"100mFile.txt", 
 				"C:\\Users\\brand\\Documents\\Computer Science\\CS 260\\DownloadAccelerator\\");
 		acceleratorServer.createThreads();
-		System.out.println("Threads created.");
 		System.out.println("Dividing input file...");
 		acceleratorServer.divideFile();
 		System.out.println("File division completed.");
